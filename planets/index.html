@@ -80,22 +80,6 @@
             scene.add(mesh);
             planet.mesh = mesh;
 
-            // Create Saturn rings
-            if (planet.name === 'Saturn') {
-                const ringTexture = textureLoader.load('assets/saturn-rings.jpg');
-                const ringGeometry = new THREE.RingGeometry(planet.size * 1.2, planet.size * 2.2, 64);
-                const ringMaterial = new THREE.MeshStandardMaterial({ 
-                    map: ringTexture, 
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                const rings = new THREE.Mesh(ringGeometry, ringMaterial);
-                rings.rotation.x = Math.PI / 2; // Rotate rings to be horizontal
-                scene.add(rings);
-                planet.rings = rings; // Store reference to rings for animation
-            }
-
             // Create orbit path
             const orbitGeometry = new THREE.RingGeometry(planet.distance - 0.1, planet.distance + 0.1, 64);
             const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
@@ -117,13 +101,6 @@
                 const angle = time * planet.speed;
                 planet.mesh.position.x = planet.distance * Math.cos(angle);
                 planet.mesh.position.z = planet.distance * Math.sin(angle);
-                
-                // Update Saturn rings position and rotation
-                if (planet.rings) {
-                    planet.rings.position.x = planet.mesh.position.x;
-                    planet.rings.position.z = planet.mesh.position.z;
-                    planet.rings.rotation.z += planet.rotationSpeed * 0.5; // Rings rotate slower than planet
-                }
             });
             controls.update();
             renderer.render(scene, camera);
