@@ -64,7 +64,7 @@
             { name: 'Earth', size: 1, distance: 15, speed: 0.02, rotationSpeed: 0.008, texture: 'assets/earth.jpg' },
             { name: 'Mars', size: 0.532, distance: 22.79, speed: 0.016, rotationSpeed: 0.012, texture: 'assets/mars.jpg' },
             { name: 'Jupiter', size: 11.21, distance: 77.78, speed: 0.004, rotationSpeed: 0.014, texture: 'assets/jupiter.jpg' },
-            { name: 'Saturn', size: 9.45, distance: 143.37, speed: 0.002, rotationSpeed: 0.016, texture: 'assets/saturn.jpg' },
+            { name: 'Saturn', size: 9.45, distance: 143.37, speed: 0.002, rotationSpeed: 0.016, texture: 'assets/saturn.jpg', rings: { innerRadius: 12, outerRadius: 18, texture: 'assets/saturn-rings.jpg' } },
             { name: 'Uranus', size: 4.01, distance: 287.1, speed: 0.0008, rotationSpeed: 0.018, texture: 'assets/uranus.jpg' },
             { name: 'Neptune', size: 3.88, distance: 449.5, speed: 0.0004, rotationSpeed: 0.02, texture: 'assets/neptune.jpg' }
         ];
@@ -79,6 +79,22 @@
             const mesh = new THREE.Mesh(geometry, material);
             scene.add(mesh);
             planet.mesh = mesh;
+
+            // Create rings if planet has them (e.g., Saturn)
+            if (planet.rings) {
+                const ringTexture = textureLoader.load(planet.rings.texture);
+                const ringGeometry = new THREE.RingGeometry(planet.rings.innerRadius, planet.rings.outerRadius, 64);
+                const ringMaterial = new THREE.MeshStandardMaterial({ 
+                    map: ringTexture, 
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const rings = new THREE.Mesh(ringGeometry, ringMaterial);
+                rings.rotation.x = Math.PI / 2; // Rotate rings to be horizontal
+                scene.add(rings);
+                planet.rings.mesh = rings;
+            }
 
             // Create orbit path
             const orbitGeometry = new THREE.RingGeometry(planet.distance - 0.1, planet.distance + 0.1, 64);
@@ -101,6 +117,13 @@
                 const angle = time * planet.speed;
                 planet.mesh.position.x = planet.distance * Math.cos(angle);
                 planet.mesh.position.z = planet.distance * Math.sin(angle);
+                
+                // Move rings with the planet if they exist
+                if (planet.rings && planet.rings.mesh) {
+                    planet.rings.mesh.position.x = planet.mesh.position.x;
+                    planet.rings.mesh.position.z = planet.mesh.position.z;
+                    planet.rings.mesh.rotation.z += planet.rotationSpeed * 0.5; // Rings rotate slightly slower
+                }
             });
             controls.update();
             renderer.render(scene, camera);
